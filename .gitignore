@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+logs/
+*.log
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
+*.egg-info/
+.vscode/
+.idea/
+
+# Large raw data files (re-download via Unimol/src/download_data.py)
+data/qm9/raw/gdb9.sdf
+data/qm9/raw/gdb9.sdf.csv

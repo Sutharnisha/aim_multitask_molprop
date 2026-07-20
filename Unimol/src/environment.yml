@@ -1,0 +1,20 @@
+name: aim_unimol
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - rdkit
+  - numpy
+  - pandas
+  - matplotlib
+  - seaborn
+  - tqdm
+  - pip
+  - pip:
+      - torch>=2.1
+      - unimol-tools>=0.1.6
+      - transformers
+      - huggingface-hub
+      - scikit-learn
+      - scipy
