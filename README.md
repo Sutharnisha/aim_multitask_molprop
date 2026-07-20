@@ -94,7 +94,7 @@ Pretrained Uni-Mol weights (~700 MB) download automatically via `unimol_tools` o
 
 ## Data
 
-Both pipelines read from the same location. Download QM9 raw files and place them at:
+This repo does **not** ship a `data/` folder — you need to fetch QM9 yourself and place the raw files at:
 
 ```
 data/qm9/raw/gdb9.sdf
@@ -102,7 +102,18 @@ data/qm9/raw/gdb9.sdf.csv
 data/qm9/raw/uncharacterized.txt   # optional exclusion list
 ```
 
-QM9 is available from [quantum-machine.org/datasets](http://quantum-machine.org/datasets/) or via PyTorch Geometric's `torch_geometric.datasets.QM9`. For Uni-Mol, `python download_data.py` (from `Unimol/src/`) downloads QM9, triggers the pretrained-weight download, and runs an end-to-end pipeline smoke test.
+(`--data_root` defaults to `../../data/qm9` for GNN and `../data/qm9` for Uni-Mol — both resolve to this same top-level `data/qm9/` when run from their respective `src/` directories.)
+
+**Easiest way — let PyTorch Geometric fetch it for you:**
+```bash
+pip install torch_geometric
+python -c "from torch_geometric.datasets import QM9; QM9(root='data/qm9')"
+```
+This downloads and extracts `gdb9.sdf`, `gdb9.sdf.csv`, and `uncharacterized.txt` into `data/qm9/raw/` automatically — no manual unpacking needed. `torch_geometric` itself isn't otherwise a dependency of this project; it's only used here as a convenient downloader.
+
+**Manual alternative:** grab the same three files from [quantum-machine.org/datasets](http://quantum-machine.org/datasets/) or the [Figshare QM9 collection](https://figshare.com/collections/Quantum_chemistry_structures_and_properties_of_134_kilo_molecules/978904) and place them under `data/qm9/raw/` yourself.
+
+> **Note:** despite its name, `Unimol/src/download_data.py` does not fetch QM9 — it only *verifies* the raw files already exist at `../data/qm9/raw/` (and triggers the separate pretrained Uni-Mol weight download). Run it after the data is in place, from `Unimol/src/`, as an end-to-end smoke test.
 
 ---
 
@@ -192,14 +203,4 @@ Unimol/results/<method>_n<N>_seed<S>/
 
 ---
 
-## Citation
 
-```bibtex
-@inproceedings{minot2025aim,
-  title     = {AIM: Adaptive Intervention for Deep Multi-task Learning of Molecular Properties},
-  author    = {Minot, Jack and Schneider, Nadine},
-  booktitle = {NeurIPS Workshop on AI for Science},
-  year      = {2025},
-  url       = {https://arxiv.org/abs/2509.25955}
-}
-```
