@@ -9,6 +9,8 @@ Thumbs.db
 *.egg-info/
 .vscode/
 .idea/
+GNN/results/*
+Unimol/results/*
 
 # Large raw data files (re-download via Unimol/src/download_data.py)
 data/qm9/raw/gdb9.sdf
