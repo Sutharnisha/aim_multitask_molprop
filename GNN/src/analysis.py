@@ -23,6 +23,9 @@ from data import TASK_NAMES, N_TASKS
 from metrics import mean_rank, delta_m_percent, print_results_table
 
 
+# Stale from the earlier 3-task (mu, U0, U) / paper's 11-task setup — no
+# overlap with the current 2-task pilot (mu, eps_LUMO), so no heatmap label
+# gets highlighted right now. Update if TASK_NAMES changes again.
 ENERGY_TASKS = {"U0", "U", "H", "G"}
 
 

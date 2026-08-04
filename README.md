@@ -19,7 +19,9 @@ The paper itself only ever benchmarks one GNN backbone; testing AIM with a secon
 
 ## What AIM does
 
-Training one encoder on several molecular property targets at once runs into gradient conflicts: tasks pull the shared parameters in different directions. Static heuristics like PCGrad resolve this with a fixed geometric rule. AIM instead **learns** a per-task-pair policy, a threshold τ per task pair — that decides how much of each task's conflicting gradient component to project out, trained jointly with the main model using a guidance loss plus two differentiable regularizers (magnitude preservation, progress-on-hard-tasks). Both backbones here compare AIM (scalar and matrix policy variants) against linear scalarization (LS), PCGrad, and single-task learning (STL) baselines on the same 3-task QM9 subset: dipole moment (`mu`), internal energy at 0 K (`U0`), and internal energy at 298 K (`U`).
+Training one encoder on several molecular property targets at once runs into gradient conflicts: tasks pull the shared parameters in different directions. Static heuristics like PCGrad resolve this with a fixed geometric rule. AIM instead **learns** a per-task-pair policy, a threshold τ per task pair — that decides how much of each task's conflicting gradient component to project out, trained jointly with the main model using a guidance loss plus two differentiable regularizers (magnitude preservation, progress-on-hard-tasks). Both backbones here compare AIM (scalar and matrix policy variants) against linear scalarization (LS), PCGrad, and single-task learning (STL) baselines on a QM9 task subset.
+
+> **Note:** `GNN/` and `Unimol/` currently use *different* task subsets. `Unimol/` still uses the original 3-task pilot: dipole moment (`mu`), internal energy at 0 K (`U0`), internal energy at 298 K (`U`) — but `U0`/`U` are near-duplicate targets (r=1.00 in the raw QM9 labels, differing only by a small thermal correction), so there's almost no real gradient conflict for AIM/PCGrad to resolve on that pair, which let plain LS win in practice. `GNN/` was switched to a 2-task pilot instead: `mu` + `eps_LUMO` (r=-0.39), the strongest conflict among physically distinct QM9 properties, to actually exercise gradient-conflict resolution before scaling to the paper's full 11-task QM9 setup.
 
 Both pipelines assume a normal single-GPU machine — there is no reduced-memory or CPU-offload mode; per-task gradients are computed from one shared forward pass via `torch.autograd.grad` and combined directly on-device.
 
@@ -126,7 +128,9 @@ python train.py --method aim_matrix --n_train 5000 --n_epochs 300   # AIM, matri
 python train.py --method aim_scalar --n_train 5000 --n_epochs 300   # AIM, scalar policy
 python train.py --method ls         --n_train 5000 --n_epochs 300   # linear scalarization
 python train.py --method pcgrad     --n_train 5000 --n_epochs 300   # PCGrad
-python train.py --method stl --stl_task_idx 0 --n_train 5000 --n_epochs 300   # STL: trains ONE task only (0=mu, 1=U0, 2=U)
+python train.py --method stl --stl_task_idx 0 --n_train 5000 --n_epochs 300   # STL: trains ONE task only
+                                                                                # GNN task indices:    0=mu, 1=eps_LUMO
+                                                                                # Unimol task indices: 0=mu, 1=U0, 2=U
 ```
 
 **Key arguments — identical defaults on both backbones:**
