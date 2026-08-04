@@ -11,6 +11,8 @@ Thumbs.db
 .idea/
 GNN/results/*
 Unimol/results/*
+*.tex
+*.pdf
 
 # Large raw data files (re-download via Unimol/src/download_data.py)
 data/qm9/raw/gdb9.sdf
