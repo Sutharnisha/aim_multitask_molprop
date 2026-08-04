@@ -22,9 +22,9 @@ from pathlib import Path
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
-RESULTS_DIR     = Path("../results")
-GNN_RESULTS_DIR = Path("../../GNN/results_Adam")
-SAVE_PATH       = RESULTS_DIR / "comparison_all_n5000.png"
+RESULTS_DIR     = Path("../results_lr5e4_S_42")
+GNN_RESULTS_DIR = Path("../../GNN/results_lr_5e4_Seed_42")
+SAVE_PATH       = Path("../results") / "comparison_all_n5000.png"
 
 RUNS = {
     "LS":         "ls_n5000_seed42",
@@ -33,11 +33,10 @@ RUNS = {
     "AIM Matrix": "aim_matrix_n5000_seed42",
 }
 
-STL_RUNS = {
-    "mu": "stl_task0_mu_n5000_seed42",
-    "U0": "stl_task1_U0_n5000_seed42",
-    "U":  "stl_task2_U_n5000_seed42",
-}
+# Only stl_task0 (mu) has ever been trained -- stl_task1 (U0) and stl_task2 (U)
+# do not exist for either backbone, so there is no valid STL baseline for
+# those two tasks. STL is therefore only plotted/reported for mu below.
+STL_RUN = "stl_task0_mu_n5000_seed42"
 
 COLORS = {
     "LS":         "#4878CF",
@@ -70,7 +69,8 @@ def best_stl_test(run: str, task: str, base: Path) -> float:
 
 
 def build_stl_test(base: Path) -> dict:
-    return {task: best_stl_test(run, task, base) for task, run in STL_RUNS.items()}
+    """Only mu has a real STL baseline -- returns a single-key dict."""
+    return {"mu": best_stl_test(STL_RUN, "mu", base)}
 
 
 # ── Load Uni-Mol data ─────────────────────────────────────────────────────────
@@ -78,14 +78,14 @@ def build_stl_test(base: Path) -> dict:
 histories = {lbl: load_history(run, RESULTS_DIR) for lbl, run in RUNS.items()}
 bests     = {lbl: best_epoch(h) for lbl, h in histories.items()}
 stl_test  = build_stl_test(RESULTS_DIR)
-stl_hists = {task: load_history(run, RESULTS_DIR) for task, run in STL_RUNS.items()}
+stl_hists = {"mu": load_history(STL_RUN, RESULTS_DIR)}
 
 # ── Load GNN data ─────────────────────────────────────────────────────────────
 
 gnn_histories = {lbl: load_history(run, GNN_RESULTS_DIR) for lbl, run in RUNS.items()}
 gnn_bests     = {lbl: best_epoch(h) for lbl, h in gnn_histories.items()}
 gnn_stl_test  = build_stl_test(GNN_RESULTS_DIR)
-gnn_stl_hists = {task: load_history(run, GNN_RESULTS_DIR) for task, run in STL_RUNS.items()}
+gnn_stl_hists = {"mu": load_history(STL_RUN, GNN_RESULTS_DIR)}
 
 # ── Figure layout ─────────────────────────────────────────────────────────────
 
@@ -129,15 +129,16 @@ for lbl, history in histories.items():
             marker="o", markersize=3, markevery=2,
         )
 
-for task in TASKS:
-    hist   = stl_hists[task]
-    epochs = [e["epoch"] for e in hist]
-    vals   = [e["val_per_task"][task] for e in hist]
-    task_axes[task].plot(
-        epochs, vals,
-        label="STL", color=COLORS["STL"],
-        linewidth=1.5, linestyle=":", marker="s", markersize=3, markevery=2,
-    )
+# Only mu has a real, trained STL baseline (stl_task1/2 for U0/U were never
+# run), so the STL reference line is only plotted on the mu axis.
+hist   = stl_hists["mu"]
+epochs = [e["epoch"] for e in hist]
+vals   = [e["val_per_task"]["mu"] for e in hist]
+task_axes["mu"].plot(
+    epochs, vals,
+    label="STL", color=COLORS["STL"],
+    linewidth=1.5, linestyle=":", marker="s", markersize=3, markevery=2,
+)
 
 for task, ax in task_axes.items():
     ax.set_title(f"Uni-Mol Val MAE — {task} ({TASK_UNITS[task]})", fontsize=10)
@@ -163,7 +164,9 @@ def plot_bar_chart(ax, bests_dict, stl_vals, title_prefix):
 
     for i, lbl in enumerate(all_labels):
         if lbl == "STL":
-            vals  = [stl_vals[t] for t in TASKS]
+            # Only mu has a real STL baseline; U0/U bars are omitted (NaN)
+            # rather than plotted from nonexistent data.
+            vals  = [stl_vals.get(t, np.nan) for t in TASKS]
             color = COLORS["STL"]
         else:
             test  = bests_dict[lbl]["test_per_task"]
@@ -176,8 +179,11 @@ def plot_bar_chart(ax, bests_dict, stl_vals, title_prefix):
             label=lbl, color=color,
             edgecolor="white", linewidth=0.5, alpha=0.88,
         )
-        max_v = max(vals)
+        finite_vals = [v for v in vals if not np.isnan(v)]
+        max_v = max(finite_vals) if finite_vals else 1.0
         for bar, v in zip(bars, vals):
+            if np.isnan(v):
+                continue   # no bar drawn (no data), so no label either
             ax.text(
                 bar.get_x() + bar.get_width() / 2,
                 bar.get_height() + max_v * 0.01,
@@ -228,21 +234,19 @@ plot_tau_heatmap(ax_gnn_heat, gnn_bests, "GNN")
 # ── Footer: Δm% table ────────────────────────────────────────────────────────
 
 def delta_m_pct(test_per_task: dict, stl_vals: dict) -> float:
-    pcts = [
-        (stl_vals[t] - test_per_task[t]) / abs(stl_vals[t]) * 100.0
-        for t in TASKS
-    ]
-    return float(np.mean(pcts))
+    # Only mu has a real STL baseline (stl_task1/2 for U0/U were never run),
+    # so this is Delta_m%(mu), not a 3-task average.
+    return (stl_vals["mu"] - test_per_task["mu"]) / abs(stl_vals["mu"]) * 100.0
 
 header = (
-    f"  {'Method':<13}  {'Uni-Mol Δm%':>11}  {'GNN Δm%':>9}  |"
+    f"  {'Method':<13}  {'Uni-Mol Dm%(mu)':>15}  {'GNN Dm%(mu)':>12}  |"
     f"  {'UM-mu':>7}  {'UM-U0':>7}  {'UM-U':>7}  |"
     f"  {'GNN-mu':>7}  {'GNN-U0':>7}  {'GNN-U':>7}"
 )
 sep = "  " + "-" * (len(header) - 2)
 
 rows = [
-    "Δm% (positive = better than STL, higher is better):",
+    "Delta_m%(mu) only -- no valid STL baseline exists for U0/U (positive = better than STL):",
     header, sep,
 ]
 for lbl in RUNS:
@@ -251,15 +255,15 @@ for lbl in RUNS:
     um_t   = bests[lbl]["test_per_task"]
     gnn_t  = gnn_bests[lbl]["test_per_task"]
     rows.append(
-        f"  {lbl:<13}  {um_dm:>+10.2f}%  {gnn_dm:>+8.2f}%  |"
+        f"  {lbl:<13}  {um_dm:>+14.2f}%  {gnn_dm:>+11.2f}%  |"
         f"  {um_t['mu']:>7.3f}  {um_t['U0']:>7.1f}  {um_t['U']:>7.1f}  |"
         f"  {gnn_t['mu']:>7.3f}  {gnn_t['U0']:>7.1f}  {gnn_t['U']:>7.1f}"
     )
 rows.append(sep)
 rows.append(
-    f"  {'STL Ref':<13}  {'0.00%':>11}  {'0.00%':>9}  |"
-    f"  {stl_test['mu']:>7.3f}  {stl_test['U0']:>7.1f}  {stl_test['U']:>7.1f}  |"
-    f"  {gnn_stl_test['mu']:>7.3f}  {gnn_stl_test['U0']:>7.1f}  {gnn_stl_test['U']:>7.1f}"
+    f"  {'STL Ref':<13}  {'0.00%':>15}  {'0.00%':>12}  |"
+    f"  {stl_test['mu']:>7.3f}  {'n/a':>7}  {'n/a':>7}  |"
+    f"  {gnn_stl_test['mu']:>7.3f}  {'n/a':>7}  {'n/a':>7}"
 )
 
 fig.text(

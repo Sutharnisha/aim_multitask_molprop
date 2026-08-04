@@ -515,7 +515,7 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser(
         description="Train AIM or baseline with Uni-Mol on QM9"
     )
-    p.add_argument("--method",           default="ls",
+    p.add_argument("--method",           default="pcgrad",
                    choices=["ls", "pcgrad", "aim_scalar", "aim_matrix", "stl"])
     p.add_argument("--stl_task_idx",     type=int,   default=0,
                    help="Task index for STL (0=mu, 1=U0, 2=U)")
@@ -526,7 +526,7 @@ if __name__ == "__main__":
     p.add_argument("--freeze_backbone",  action="store_true")
     p.add_argument("--trainable_layers", type=int,   default=2,
                    help="-1 = all transformer blocks trainable (default)")
-    p.add_argument("--lr_model",         type=float, default=5e-5)
+    p.add_argument("--lr_model",         type=float, default=5e-4)
     p.add_argument("--lr_policy",        type=float, default=4e-4)
     p.add_argument("--batch_size",       type=int,   default=32)
     p.add_argument("--lambda_g",         type=float, default=1.0)
@@ -534,7 +534,7 @@ if __name__ == "__main__":
     p.add_argument("--lambda_p",         type=float, default=0.08)
     p.add_argument("--k",                type=float, default=10.0)
     p.add_argument("--data_root",        default="../../data/qm9")
-    p.add_argument("--save_dir",         default="../results_pcgrad")
+    p.add_argument("--save_dir",         default="../results_lr5e4")
     p.add_argument("--log_every",        type=int,   default=1)
     p.add_argument("--device",           default=None, dest="device_str")
     args = p.parse_args()
