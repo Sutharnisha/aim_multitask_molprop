@@ -21,6 +21,28 @@ TaskMAE = Dict[str, float]          # {task_name: mae_value}
 Results = Dict[str, TaskMAE]        # {method_name: TaskMAE}
 
 
+def _average_ranks(values: List[float]) -> List[float]:
+    """
+    Rank values ascending (rank 1 = smallest/best), giving tied values the
+    average of the rank positions they jointly occupy — e.g. two values tied
+    for 2nd/3rd both get rank 2.5. Matches the paper's stated tie-breaking
+    convention (equivalent to scipy.stats.rankdata(..., method="average")).
+    """
+    n = len(values)
+    order = sorted(range(n), key=lambda i: values[i])
+    ranks = [0.0] * n
+    i = 0
+    while i < n:
+        j = i
+        while j + 1 < n and values[order[j + 1]] == values[order[i]]:
+            j += 1
+        avg_rank = (i + 1 + j + 1) / 2.0   # 1-indexed average of positions i+1..j+1
+        for k in range(i, j + 1):
+            ranks[order[k]] = avg_rank
+        i = j + 1
+    return ranks
+
+
 def mean_rank(results: Results) -> Dict[str, float]:
     """
     Compute Mean Rank for every method.
@@ -34,12 +56,12 @@ def mean_rank(results: Results) -> Dict[str, float]:
     methods = list(results.keys())
     tasks   = list(next(iter(results.values())).keys())
 
-    rank_lists: Dict[str, List[int]] = {m: [] for m in methods}
+    rank_lists: Dict[str, List[float]] = {m: [] for m in methods}
 
     for task in tasks:
-        # Sort methods by MAE on this task (ascending = lower MAE is better)
-        ordered = sorted(methods, key=lambda m: results[m].get(task, float("inf")))
-        for rank, method in enumerate(ordered, start=1):
+        values = [results[m].get(task, float("inf")) for m in methods]
+        ranks  = _average_ranks(values)
+        for method, rank in zip(methods, ranks):
             rank_lists[method].append(rank)
 
     return {m: float(np.mean(rank_lists[m])) for m in methods}

@@ -79,7 +79,7 @@ class RBFExpansion(nn.Module):
 
 class NNConvGRUBlock(nn.Module):
     """
-    One MPNN interaction step (Gilmer et al. Eq. 1):
+    One MPNN interaction step:
 
         M_t(h_v, h_w, e_{vw}) = A(e_{vw}) · h_w
         m_v^{t+1} = mean_{w ∈ N(v)} M_t(...)
@@ -106,7 +106,7 @@ class NNConvGRUBlock(nn.Module):
         self,
         h:         torch.Tensor,   # [B, N, d]
         rbf:       torch.Tensor,   # [B, N, N, n_rbf]
-        pair_mask: torch.Tensor,   # [B, N, N] bool — True = valid pair
+        pair_mask: torch.Tensor,   # [B, N, N] 
     ) -> torch.Tensor:
         """Returns updated node features [B, N, d]."""
         B, N, d = h.shape
@@ -141,7 +141,7 @@ class NNConvGRUBlock(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# Set2Set readout  (Vinyals et al. 2015)
+# Set2Set readout  
 # ---------------------------------------------------------------------------
 
 class Set2Set(nn.Module):
@@ -193,7 +193,7 @@ class Set2Set(nn.Module):
             # Mask padding atoms before softmax
             e = e.masked_fill(~mask, float('-inf'))
             a = torch.softmax(e, dim=-1)                            # [B, N]
-            # Fix NaN when all atoms are padding (shouldn't happen in practice)
+            # Fix NaN when all atoms are padding 
             a = torch.nan_to_num(a, nan=0.0)
 
             # Attended readout
@@ -226,7 +226,7 @@ class MPNNEncoder(nn.Module):
         cutoff:           float = CUTOFF,
         n_atom_feat:      int   = 11,
         set2set_steps:    int   = 3,
-        trainable_layers: int   = -1,
+        trainable_layers: int   = 2,
     ):
         """
         trainable_layers:
