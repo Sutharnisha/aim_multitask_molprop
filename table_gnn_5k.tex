@@ -1,0 +1,61 @@
+% Benchmark results on GNN backbone, n_train = 5,000, single seed (42).
+% Delta_m(%) computed on mu ONLY (no valid STL baseline exists yet for U0/U --
+% stl_task_idx=1 and 2 have not been run). Positive Delta_m = better than STL.
+% No +/- error bars: only one seed completed (42); seeds 123 and 7 planned next.
+% Update this table once N=3 seeds are available, replacing single values with mean +/- std.
+
+\begin{table}[t]
+\centering
+\caption{All non-STL methods on the GNN backbone, QM9, $n_{\text{train}}=5{,}000$,
+single seed (42). $\Delta_m(\%)$ is computed on $\mu$ only, since no trained STL
+baseline currently exists for $U_0$/$U$; positive $\Delta_m$ = better than STL,
+lower MR is better. MR is reported separately per block because it is only
+meaningful \emph{within} a set of methods trained under the same protocol:
+the top block (MR$_1$) is a fully controlled comparison, all four methods at
+lr\_model$=5\times10^{-5}$. The bottom block (MR$_2$) substitutes the
+lr$=5\times10^{-4}$ AIM reruns against the \emph{same}, unchanged lr$=5\times10^{-5}$
+LS/PCGrad -- since LS and PCGrad have not themselves been re-run at the higher
+rate, MR$_2$ is not a controlled comparison and should be read as indicative
+only (it isolates the effect of raising AIM's own learning rate, not a fair
+method-vs-method ranking).}
+\label{tab:gnn_5k_all_methods}
+\begin{tabular}{llcc}
+\toprule
+Model & lr\_model & $\Delta_m(\%)_{\mu}$ & MR \\
+\midrule
+LS           & $5\times10^{-5}$ & $-14.59$          & $2.67$ \\
+PCGrad       & $5\times10^{-5}$ & $-13.31$          & $3.33$ \\
+AIM (Scalar) & $5\times10^{-5}$ & $-18.58$          & $3.00$ \\
+AIM (Matrix) & $5\times10^{-5}$ & $\mathbf{-11.75}$ & $\mathbf{1.00}$ \\
+\midrule
+LS           & $5\times10^{-5}$ & $-14.59$          & $3.33$ \\
+PCGrad       & $5\times10^{-5}$ & $-13.31$          & $3.67$ \\
+AIM (Scalar) & $5\times10^{-4}$ & $\mathbf{+29.79}$ & $\mathbf{1.00}$ \\
+AIM (Matrix) & $5\times10^{-4}$ & $+25.26$          & $2.00$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{lr\_model$=5\times10^{-4}$ only, GNN backbone, QM9, $n_{\text{train}}=5{,}000$,
+single seed (42). Only AIM-Scalar and AIM-Matrix have been run at this learning
+rate; LS, PCGrad, and STL have not, so this table cannot include them. MR here
+\emph{is} a fully controlled comparison -- both rows are trained under an
+identical protocol, differing only in policy variant (scalar vs.\ matrix) --
+unlike the mixed-regime MR$_2$ in Table~\ref{tab:gnn_5k_all_methods}.
+$\Delta_m(\%)$ is still computed against the only available STL baseline, which
+remains at lr$=5\times10^{-5}$ (STL has not been re-run at $5\times10^{-4}$);
+the resulting positive values should therefore be read as evidence that a
+higher learning rate helps AIM substantially, not as AIM having genuinely
+surpassed the single-task ceiling.}
+\label{tab:gnn_5k_lr5e4_only}
+\begin{tabular}{lcc}
+\toprule
+Model & $\Delta_m(\%)_{\mu}$ & MR \\
+\midrule
+AIM (Scalar) & $\mathbf{+29.79}$ & $\mathbf{1.00}$ \\
+AIM (Matrix) & $+25.26$          & $2.00$ \\
+\bottomrule
+\end{tabular}
+\end{table}

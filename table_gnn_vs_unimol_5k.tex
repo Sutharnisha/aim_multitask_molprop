@@ -1,0 +1,35 @@
+% GNN and Uni-Mol backbones, QM9, n_train=5,000, single seed (42).
+% All four shared-backbone methods (LS, PCGrad, AIM-Scalar, AIM-Matrix) are
+% present for both backbones at each backbone's own default learning rate:
+%   GNN     : lr_model = 5e-5
+%   Uni-Mol : lr_model = 5e-4
+% MR and Delta_m% are each fully controlled WITHIN a backbone (all 4 methods,
+% same protocol) -- but the two backbones are NOT run at a matched learning
+% rate, so this table answers "which method wins on each backbone as actually
+% run," not "which method wins on each backbone controlling for LR."
+%
+% Delta_m% is on mu only (no valid STL baseline for U0/U on either backbone --
+% only stl_task_idx=0 has been run). Positive Delta_m = better than STL.
+% No +/- error bars: single seed (42) only.
+
+\begin{table}[t]
+\centering
+\caption{Test performance by backbone, QM9, $n_{\text{train}}=5{,}000$, single
+seed (42). $\Delta_m(\%)$ computed on $\mu$ only (positive = better than STL).
+MR computed over the four shared-backbone methods (LS, PCGrad, AIM-Scalar,
+AIM-Matrix) within each backbone. Each backbone uses its own default learning
+rate (GNN: $5\times10^{-5}$; Uni-Mol: $5\times10^{-4}$) -- see note below.}
+\label{tab:gnn_vs_unimol_5k}
+\begin{tabular}{lcccc}
+\toprule
+ & \multicolumn{2}{c}{GNN (lr$=5\times10^{-5}$)} & \multicolumn{2}{c}{Uni-Mol (lr$=5\times10^{-4}$)} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5}
+Model & $\Delta_m(\%)_{\mu}$ & MR & $\Delta_m(\%)_{\mu}$ & MR \\
+\midrule
+LS           & $-14.59$          & $2.67$          & $+22.68$          & $3.00$ \\
+PCGrad       & $-13.31$          & $3.33$          & $+18.45$          & $3.67$ \\
+AIM (Scalar) & $-18.58$          & $3.00$          & $+20.44$          & $2.00$ \\
+AIM (Matrix) & $\mathbf{-11.75}$ & $\mathbf{1.00}$ & $\mathbf{+23.03}$ & $\mathbf{1.33}$ \\
+\bottomrule
+\end{tabular}
+\end{table}

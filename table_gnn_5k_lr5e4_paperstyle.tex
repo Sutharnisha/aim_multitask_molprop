@@ -1,0 +1,37 @@
+% Styled to match the AIM paper's Table 1 format (Model | Delta_m% | MR,
+% under a training-budget column header).
+%
+% IMPORTANT -- this is NOT a like-for-like recreation of the paper's table:
+%   - Only AIM-Scalar and AIM-Matrix have been run at lr_model=5e-4.
+%     LS, PCGrad, and STL remain at lr=5e-5 and are NOT included here,
+%     since including them would silently mix two different learning rates.
+%   - NASH-MTL, FAMO, and CAGrad are not implemented in this codebase at all
+%     (only LS, PCGrad, AIM-Scalar, AIM-Matrix, STL exist) -- they cannot be
+%     added without implementing and running them, so they are omitted
+%     rather than fabricated.
+%   - No +/- error bars: single seed (42) only, vs. the paper's N=3-seed mean+/-std.
+%   - Delta_m% is on mu only (no valid STL baseline yet for U0/U), and is
+%     computed against the only available STL baseline, which is itself at
+%     lr=5e-5 (not re-run at 5e-4) -- so these values show AIM's improvement
+%     from a higher learning rate, not AIM surpassing a true matched ceiling.
+
+\begin{table}[t]
+\centering
+\caption{Preliminary results, GNN backbone, QM9, lr\_model$=5\times10^{-4}$,
+single seed (42). Only the two AIM policy variants have been run at this
+learning rate; other methods are omitted rather than shown at a different,
+unmatched learning rate. $\Delta_m\%$ is computed on $\mu$ only, relative to
+the (lr$=5\times10^{-5}$) STL baseline. Lower MR is better; higher $\Delta_m\%$
+is better.}
+\label{tab:gnn_5k_lr5e4_paperstyle}
+\begin{tabular}{lcc}
+\toprule
+ & \multicolumn{2}{c}{5k, lr$=5\times10^{-4}$} \\
+\cmidrule(lr){2-3}
+Model & $\Delta_m\%$ & MR \\
+\midrule
+AIM (Scalar) & $\mathbf{+29.8}$ & $\mathbf{1.00}$ \\
+AIM (Matrix) & $+25.3$          & $2.00$ \\
+\bottomrule
+\end{tabular}
+\end{table}
