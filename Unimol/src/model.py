@@ -1,5 +1,5 @@
 """
-Multi-task molecular model — Uni-Mol backbone + 3 MLP prediction heads (mu, U0, U).
+Multi-task molecular model — Uni-Mol backbone + 2 MLP prediction heads (mu, eps_LUMO).
 
 Architecture (Uni-Mol SE(3)-Transformer):
   Uni-Mol SE(3)-Transformer encoder (pretrained, ~47M params)
@@ -136,7 +136,7 @@ class UniMolMultiTask(nn.Module):
 
     def __init__(
         self,
-        n_tasks:          int   = 3,
+        n_tasks:          int   = 2,
         head_hidden:      int   = 256,
         remove_hs:        bool  = False,
         freeze_backbone:  bool  = False,
@@ -211,7 +211,7 @@ class UniMolMultiTask(nn.Module):
 
 def build_model(
     device:           torch.device,
-    n_tasks:          int   = 3,
+    n_tasks:          int   = 2,
     head_hidden:      int   = 256,
     freeze_backbone:  bool  = False,
     trainable_layers: int   = -1,

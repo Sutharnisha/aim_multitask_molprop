@@ -7,7 +7,7 @@ For each epoch:
   For each primary batch:
 
   [MODEL UPDATE]
-    1. Forward: Uni-Mol encoder → [B,512] → 3 heads → per-task losses L_i(θ)
+    1. Forward: Uni-Mol encoder → [B,512] → 2 heads → per-task losses L_i(θ)
     2. Per-task gradients: g_i = ∇_{θ_encoder} L_i   [stop-grad for policy]
     3. AIM intervention:  g_intervened = AIM(g_1…g_N ; τ)      [Eq 1-3]
     4. Override encoder grads with g_intervened; run backward for head grads
@@ -345,6 +345,7 @@ def train(
     # ── Model ─────────────────────────────────────────────────────────────
     model = build_model(
         device=device,
+        n_tasks=N_TASKS,
         head_hidden=head_hidden,
         freeze_backbone=freeze_backbone,
         trainable_layers=trainable_layers,
@@ -518,7 +519,7 @@ if __name__ == "__main__":
     p.add_argument("--method",           default="pcgrad",
                    choices=["ls", "pcgrad", "aim_scalar", "aim_matrix", "stl"])
     p.add_argument("--stl_task_idx",     type=int,   default=0,
-                   help="Task index for STL (0=mu, 1=U0, 2=U)")
+                   help="Task index for STL (0=mu, 1=eps_LUMO)")
     p.add_argument("--n_train",          type=int,   default=5000)
     p.add_argument("--n_epochs",         type=int,   default=250)
     p.add_argument("--seed",             type=int,   default=42)

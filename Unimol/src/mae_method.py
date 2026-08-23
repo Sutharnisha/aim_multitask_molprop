@@ -1,7 +1,7 @@
 """
 mae_method.py — Validation MAE vs. epoch, per method, seed=42 only.
 
-Plots mu / U0 / U validation MAE curves across training, one line per method
+Plots mu / eps_LUMO validation MAE curves across training, one line per method
 (LS, PCGrad, AIM-Scalar, AIM-Matrix + STL reference on mu), for both the
 Uni-Mol and GNN backbones. Single seed (42) -- no averaging, no error bars.
 
@@ -33,7 +33,7 @@ RUNS = {
     "AIM Scalar": f"aim_scalar_n5000_seed{SEED}",
     "AIM Matrix": f"aim_matrix_n5000_seed{SEED}",
 }
-# Only stl_task0 (mu) has ever been trained; U0/U have no valid STL baseline.
+# Only stl_task0 (mu) has ever been trained; eps_LUMO has no valid STL baseline.
 STL_RUN = f"stl_task0_mu_n5000_seed{SEED}"
 
 COLORS = {
@@ -44,8 +44,8 @@ COLORS = {
     "STL":        "#888888",
 }
 
-TASKS      = ["mu", "U0", "U"]
-TASK_UNITS = {"mu": "Debye", "U0": "eV", "U": "eV"}
+TASKS      = ["mu", "eps_LUMO"]
+TASK_UNITS = {"mu": "Debye", "eps_LUMO": "eV"}
 
 SAVE_PATH = Path("../results/mae_vs_epoch_seed42.png")
 

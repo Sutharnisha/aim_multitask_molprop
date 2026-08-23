@@ -167,7 +167,7 @@ def plot_loss_curves(
     run_name:  str,
     save_dir:  Optional[str] = None,
 ):
-    """Plot validation MAE over epochs for all 11 tasks."""
+    """Plot validation MAE over epochs for each task."""
     epochs    = [e["epoch"] for e in history]
     task_maes = {t: [] for t in TASK_NAMES}
 
@@ -175,17 +175,14 @@ def plot_loss_curves(
         for t in TASK_NAMES:
             task_maes[t].append(entry["val_per_task"].get(t, float("nan")))
 
-    fig, axes = plt.subplots(3, 4, figsize=(16, 10), sharex=True)
-    axes = axes.flatten()
+    fig, axes = plt.subplots(1, len(TASK_NAMES), figsize=(6 * len(TASK_NAMES), 4.5), sharex=True)
+    axes = np.atleast_1d(axes)
 
     for i, t in enumerate(TASK_NAMES):
         axes[i].plot(epochs, task_maes[t])
         axes[i].set_title(t)
         axes[i].set_ylabel("MAE (physical units)")
         axes[i].grid(True, alpha=0.3)
-
-    # Hide unused subplot
-    axes[-1].set_visible(False)
 
     fig.suptitle(f"Validation MAE per Task — {run_name}", fontsize=14)
     plt.tight_layout()

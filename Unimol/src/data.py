@@ -1,14 +1,13 @@
 """
 QM9 dataset loading for AIM + Uni-Mol multi-task project.
 
-3-task subset (chosen to demonstrate AIM's conflict-resolution behaviour):
-  - mu    (index 0) : dipole moment (D)             — conflicting with energy tasks
-  - U0    (index 7) : internal energy at 0 K (eV)   — aligned with U
-  - U     (index 8) : internal energy at 298.15 K   — nearly parallel to U0 (Δ≈0.04eV)
+2-task subset (matches the GNN pilot — chosen for GENUINE gradient conflict):
+  - mu        (index 0) : dipole moment (D)
+  - eps_LUMO  (index 3) : LUMO energy (eV)
 
-  mu gradients frequently oppose U0/U gradients (charge-asymmetry vs total energy).
-  U0 and U gradients are nearly identical (cosine sim ≈ 1), demonstrating AIM's
-  ability to handle both aligned and conflicting task pairs with 3-task N×N policy.
+  mu vs eps_LUMO: r=-0.39, the strongest conflict among physically distinct
+  QM9 properties (unlike mu/U0/U, where U0 and U are near-duplicate targets,
+  r=1.00 in raw QM9 labels).
 
 Training split = 80% primary + 10% guidance + 10% validation
 (guidance set used only for AIM policy loss; Section 3.2 of arXiv:2509.25955)
@@ -50,13 +49,10 @@ QM9_TASK_NAMES: Dict[int, str] = {
     10: "G",         # Free energy at 298.15 K (eV)
 }
 
-# --- 3-task selection ---
-# mu (idx 0)  : conflicting with energy tasks (charge asymmetry vs total energy)
-# U0 (idx 7)  : internal energy at 0 K  \  nearly parallel gradients
-# U  (idx 8)  : internal energy at 298 K /  (differ by ~0.04 eV thermal correction)
-N_TASKS     = 3
-TASK_NAMES  = ["mu", "U0", "U"]
-TARGET_COLS = [0, 7, 8]    # indices into the 11 QM9 properties
+# --- 2-task selection (matches GNN pilot) ---
+N_TASKS     = 2
+TASK_NAMES  = ["mu", "eps_LUMO"]
+TARGET_COLS = [0, 3]    # indices into the 11 QM9 properties
 
 # Hartree → eV conversion (same as PyG QM9)
 HAR2EV = 27.211386246

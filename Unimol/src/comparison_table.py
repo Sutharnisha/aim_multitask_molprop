@@ -16,10 +16,10 @@ Notes on what changed from the single-seed version of this script:
     not the mean across all 3 heads (two of which are untrained for STL) --
     the old selection picked epoch 1 instead of the true best epoch on GNN.
   - Delta_m% is reported on mu ONLY: STL was only ever trained for
-    stl_task_idx=0 (mu); U0/U have no valid STL baseline in this project yet.
+    stl_task_idx=0 (mu); eps_LUMO has no valid STL baseline in this project yet.
   - MR is computed over the four shared-backbone methods (LS, PCGrad,
-    AIM-Scalar, AIM-Matrix) across mu/U0/U -- STL is excluded from MR since
-    it only has a real value for one of the three tasks.
+    AIM-Scalar, AIM-Matrix) across mu/eps_LUMO -- STL is excluded from MR since
+    it only has a real value for one of the two tasks.
   - mean_rank() now uses average-of-tied-ranks (metrics.py fix), matching the
     paper's stated convention instead of the old sequential-integer ranking.
 """
@@ -43,7 +43,7 @@ SAVE_PNG    = RESULTS_DIR / "comparison_table.png"
 SAVE_CSV    = RESULTS_DIR / "comparison_table.csv"
 
 SEEDS   = [42, 123, 7]
-TASKS   = ["mu", "U0", "U"]
+TASKS   = ["mu", "eps_LUMO"]
 METHODS = ["LS", "PCGrad", "AIM Scalar", "AIM Matrix"]
 METHOD_KEY = {"LS": "ls", "PCGrad": "pcgrad", "AIM Scalar": "aim_scalar", "AIM Matrix": "aim_matrix"}
 
@@ -101,7 +101,7 @@ def compute_backbone(seed_paths):
         for m in METHODS:
             per_seed_dm[m].append(dm[m])
 
-        # MR across mu/U0/U via metrics.py's (now tie-averaging) mean_rank
+        # MR across mu/eps_LUMO via metrics.py's (now tie-averaging) mean_rank
         mr = mean_rank({m: results[m] for m in METHODS})
         for m in METHODS:
             per_seed_mr[m].append(mr[m])
@@ -206,7 +206,7 @@ make_table(ax2, "GNN",     backbone_summaries["GNN"],     "Backbone: GNN")
 fig.text(
     0.5, -0.02,
     r"$\Delta m\%_{\mu}$ computed against STL (task-specific checkpoint selection), positive = better than STL. "
-    "MR computed over the four shared-backbone methods across μ/U0/U (STL excluded, no valid U0/U baseline).",
+    "MR computed over the four shared-backbone methods across μ/eps_LUMO (STL excluded, no valid eps_LUMO baseline).",
     ha="center", fontsize=7.5, style="italic", color="#555555",
 )
 

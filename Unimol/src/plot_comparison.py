@@ -2,7 +2,7 @@
 Comprehensive comparison — n_train=5000  (Uni-Mol + GNN backbones + STL baselines).
 
 Produces comparison_all_n5000.png with:
-  Row 1 : Val MAE curves  mu / U0 / U  (Uni-Mol, 4 MTL methods + STL dotted line)
+  Row 1 : Val MAE curves  mu / eps_LUMO  (Uni-Mol, 4 MTL methods + STL dotted line)
   Row 2 : Uni-Mol best Test MAE bar chart  +  Uni-Mol AIM-Matrix τ heatmap
   Row 3 : GNN     best Test MAE bar chart  +  GNN     AIM-Matrix τ heatmap
   Footer: Δm% summary table vs STL baseline
@@ -33,9 +33,9 @@ RUNS = {
     "AIM Matrix": "aim_matrix_n5000_seed42",
 }
 
-# Only stl_task0 (mu) has ever been trained -- stl_task1 (U0) and stl_task2 (U)
-# do not exist for either backbone, so there is no valid STL baseline for
-# those two tasks. STL is therefore only plotted/reported for mu below.
+# Only stl_task0 (mu) has ever been trained -- stl_task1 (eps_LUMO) does not
+# exist for either backbone, so there is no valid STL baseline for that task.
+# STL is therefore only plotted/reported for mu below.
 STL_RUN = "stl_task0_mu_n5000_seed42"
 
 COLORS = {
@@ -46,8 +46,8 @@ COLORS = {
     "STL":        "#888888",
 }
 
-TASKS      = ["mu", "U0", "U"]
-TASK_UNITS = {"mu": "Debye", "U0": "eV", "U": "eV"}
+TASKS      = ["mu", "eps_LUMO"]
+TASK_UNITS = {"mu": "Debye", "eps_LUMO": "eV"}
 
 # ── Loaders ───────────────────────────────────────────────────────────────────
 
@@ -101,9 +101,8 @@ gs = fig.add_gridspec(
     left=0.06, right=0.97, top=0.96, bottom=0.11,
 )
 
-ax_mu   = fig.add_subplot(gs[0, 0:2])   # Row 1 — val MAE curves
-ax_U0   = fig.add_subplot(gs[0, 2:4])
-ax_U    = fig.add_subplot(gs[0, 4:6])
+ax_mu       = fig.add_subplot(gs[0, 0:3])   # Row 1 — val MAE curves
+ax_eps_lumo = fig.add_subplot(gs[0, 3:6])
 
 ax_um_bar   = fig.add_subplot(gs[1, 0:4])  # Row 2 — Uni-Mol
 ax_um_heat  = fig.add_subplot(gs[1, 4:6])
@@ -111,7 +110,7 @@ ax_um_heat  = fig.add_subplot(gs[1, 4:6])
 ax_gnn_bar  = fig.add_subplot(gs[2, 0:4])  # Row 3 — GNN
 ax_gnn_heat = fig.add_subplot(gs[2, 4:6])
 
-task_axes = {"mu": ax_mu, "U0": ax_U0, "U": ax_U}
+task_axes = {"mu": ax_mu, "eps_LUMO": ax_eps_lumo}
 
 # ── Row 1: Uni-Mol val MAE curves ─────────────────────────────────────────────
 
@@ -129,7 +128,7 @@ for lbl, history in histories.items():
             marker="o", markersize=3, markevery=2,
         )
 
-# Only mu has a real, trained STL baseline (stl_task1/2 for U0/U were never
+# Only mu has a real, trained STL baseline (stl_task1 for eps_LUMO was never
 # run), so the STL reference line is only plotted on the mu axis.
 hist   = stl_hists["mu"]
 epochs = [e["epoch"] for e in hist]
@@ -164,7 +163,7 @@ def plot_bar_chart(ax, bests_dict, stl_vals, title_prefix):
 
     for i, lbl in enumerate(all_labels):
         if lbl == "STL":
-            # Only mu has a real STL baseline; U0/U bars are omitted (NaN)
+            # Only mu has a real STL baseline; eps_LUMO bars are omitted (NaN)
             # rather than plotted from nonexistent data.
             vals  = [stl_vals.get(t, np.nan) for t in TASKS]
             color = COLORS["STL"]
@@ -207,11 +206,12 @@ plot_bar_chart(ax_gnn_bar, gnn_bests, gnn_stl_test, "GNN (SchNet)")
 # ── Tau heatmap helper ────────────────────────────────────────────────────────
 
 def plot_tau_heatmap(ax, bests_dict, title_prefix):
+    n_tasks    = len(TASKS)
     best_aim   = bests_dict["AIM Matrix"]
     tau_matrix = np.array(best_aim["tau"])
-    if tau_matrix.ndim == 0 or tau_matrix.shape != (3, 3):
-        tau_matrix = np.full((3, 3), float(tau_matrix.flat[0]))
-    mask = np.eye(3, dtype=bool)
+    if tau_matrix.ndim == 0 or tau_matrix.shape != (n_tasks, n_tasks):
+        tau_matrix = np.full((n_tasks, n_tasks), float(tau_matrix.flat[0]))
+    mask = np.eye(n_tasks, dtype=bool)
     sns.heatmap(
         tau_matrix, ax=ax,
         annot=True, fmt=".3f",
@@ -234,19 +234,19 @@ plot_tau_heatmap(ax_gnn_heat, gnn_bests, "GNN")
 # ── Footer: Δm% table ────────────────────────────────────────────────────────
 
 def delta_m_pct(test_per_task: dict, stl_vals: dict) -> float:
-    # Only mu has a real STL baseline (stl_task1/2 for U0/U were never run),
-    # so this is Delta_m%(mu), not a 3-task average.
+    # Only mu has a real STL baseline (stl_task1 for eps_LUMO was never run),
+    # so this is Delta_m%(mu), not a 2-task average.
     return (stl_vals["mu"] - test_per_task["mu"]) / abs(stl_vals["mu"]) * 100.0
 
 header = (
     f"  {'Method':<13}  {'Uni-Mol Dm%(mu)':>15}  {'GNN Dm%(mu)':>12}  |"
-    f"  {'UM-mu':>7}  {'UM-U0':>7}  {'UM-U':>7}  |"
-    f"  {'GNN-mu':>7}  {'GNN-U0':>7}  {'GNN-U':>7}"
+    f"  {'UM-mu':>7}  {'UM-eps_LUMO':>12}  |"
+    f"  {'GNN-mu':>7}  {'GNN-eps_LUMO':>13}"
 )
 sep = "  " + "-" * (len(header) - 2)
 
 rows = [
-    "Delta_m%(mu) only -- no valid STL baseline exists for U0/U (positive = better than STL):",
+    "Delta_m%(mu) only -- no valid STL baseline exists for eps_LUMO (positive = better than STL):",
     header, sep,
 ]
 for lbl in RUNS:
@@ -256,14 +256,14 @@ for lbl in RUNS:
     gnn_t  = gnn_bests[lbl]["test_per_task"]
     rows.append(
         f"  {lbl:<13}  {um_dm:>+14.2f}%  {gnn_dm:>+11.2f}%  |"
-        f"  {um_t['mu']:>7.3f}  {um_t['U0']:>7.1f}  {um_t['U']:>7.1f}  |"
-        f"  {gnn_t['mu']:>7.3f}  {gnn_t['U0']:>7.1f}  {gnn_t['U']:>7.1f}"
+        f"  {um_t['mu']:>7.3f}  {um_t['eps_LUMO']:>12.4f}  |"
+        f"  {gnn_t['mu']:>7.3f}  {gnn_t['eps_LUMO']:>13.4f}"
     )
 rows.append(sep)
 rows.append(
     f"  {'STL Ref':<13}  {'0.00%':>15}  {'0.00%':>12}  |"
-    f"  {stl_test['mu']:>7.3f}  {'n/a':>7}  {'n/a':>7}  |"
-    f"  {gnn_stl_test['mu']:>7.3f}  {'n/a':>7}  {'n/a':>7}"
+    f"  {stl_test['mu']:>7.3f}  {'n/a':>12}  |"
+    f"  {gnn_stl_test['mu']:>7.3f}  {'n/a':>13}"
 )
 
 fig.text(
