@@ -10,7 +10,9 @@ Thumbs.db
 .vscode/
 .idea/
 GNN/results/*
+GNN/results_*
 Unimol/results/*
+Unimol/results_
 *.tex
 *.pdf
 
