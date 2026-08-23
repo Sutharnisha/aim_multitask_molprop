@@ -1,7 +1,7 @@
 """
 QM9 dataset loading for AIM + MPNN (Gilmer et al. 2017) project.
 
-Provides 3-task selection (mu, U0, U), reproducible splits, and per-task
+Provides 2-task selection (mu, eps_LUMO), reproducible splits, and per-task
 normalization following the AIM paper (Minot & Schneider, arXiv:2509.25955).
 Each molecule is represented by an 11-dim atom feature vector per atom
 (matching the PyG QM9.x format used across MPNN benchmarks on QM9).
@@ -42,9 +42,13 @@ QM9_TASK_NAMES: Dict[int, str] = {
     9:  "H",         10: "G",
 }
 
-N_TASKS     = 3
-TASK_NAMES  = ["mu", "U0", "U"]
-TARGET_COLS = [0, 7, 8]
+N_TASKS     = 2
+TASK_NAMES  = ["mu", "eps_LUMO"]
+TARGET_COLS = [0, 3]
+# 2-task pilot chosen for GENUINE gradient conflict (unlike mu/U0/U, where
+# U0 and U are near-duplicate targets, r=1.00 in raw QM9 labels — see
+# correlation check in project memory). mu vs eps_LUMO: r=-0.39, the
+# strongest conflict among physically distinct QM9 properties.
 
 HAR2EV = 27.211386246
 

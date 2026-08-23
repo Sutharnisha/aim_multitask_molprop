@@ -343,6 +343,7 @@ def train(
     # ── Model ─────────────────────────────────────────────────────────────
     model = build_model(
         device=device,
+        n_tasks=N_TASKS,
         head_hidden=head_hidden,
         trainable_layers=trainable_layers,
     )
@@ -513,15 +514,16 @@ if __name__ == "__main__":
     p.add_argument("--method",           default="aim_matrix",
                    choices=["ls", "pcgrad", "aim_scalar", "aim_matrix", "stl"])
     p.add_argument("--stl_task_idx",     type=int,   default=0,
-                   help="Task index for STL (0=mu, 1=U0, 2=U)")
+                   help="Task index for STL (0=mu, 1=eps_LUMO)")
     p.add_argument("--n_train",          type=int,   default=5000)
     p.add_argument("--n_epochs",         type=int,   default=250)
     p.add_argument("--seed",             type=int,   default=42)
     p.add_argument("--head_hidden",      type=int,   default=64)
-    p.add_argument("--trainable_layers", type=int,   default= 2,
-                   help="-1 = all layers trainable (default for GNN from scratch)")
+    p.add_argument("--trainable_layers", type=int,   default=-1,
+                   help="-1 = all layers trainable (default for GNN from scratch; "
+                        "do NOT freeze layers that were never pretrained)")
     p.add_argument("--lr_model",         type=float, default=5e-4)
-    p.add_argument("--lr_policy",        type=float, default=4e-4)
+    p.add_argument("--lr_policy",        type=float, default=5e-4)
     p.add_argument("--batch_size",       type=int,   default=32)
     p.add_argument("--lambda_g",         type=float, default=1.0)
     p.add_argument("--lambda_m",         type=float, default=0.01)

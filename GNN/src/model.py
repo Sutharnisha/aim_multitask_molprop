@@ -308,7 +308,7 @@ class MPNNMultiTask(nn.Module):
 
     def __init__(
         self,
-        n_tasks:          int   = 3,
+        n_tasks:          int   = 2,
         head_hidden:      int   = 64,
         hidden_dim:       int   = HIDDEN_DIM,
         n_steps:          int   = N_STEPS,
